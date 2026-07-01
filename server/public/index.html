@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beam - Clean & Private Calling</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Main Container -->
+  <div id="app">
+    <!-- Active Tab Screen -->
+    <main id="screen-container">
+      
+      <!-- Splash Screen -->
+      <section id="screen-splash" class="screen active">
+        <div class="splash-logo">
+          <div class="logo-icon">
+            <i data-lucide="phone-call" class="logo-icon-svg"></i>
+          </div>
+          <h1>Beam</h1>
+          <p>Private • Simple • Free</p>
+        </div>
+        <div class="spinner"></div>
+        <div id="splash-error" class="error-msg hidden"></div>
+      </section>
+
+      <!-- Main Home Screen (Wrapper for Tabs) -->
+      <section id="screen-home" class="screen">
+        <header class="app-header">
+          <div class="logo-small">
+            <i data-lucide="phone-call" class="logo-small-svg"></i>
+          </div>
+          <h2 id="header-title">Beam</h2>
+        </header>
+
+        <!-- Dynamic Tab Body -->
+        <div id="tab-body">
+          <!-- DIALER TAB -->
+          <div id="tab-dialer" class="tab-content active">
+            <!-- Dialer Display -->
+            <div class="dialer-display">
+              <div id="dial-number" class="dial-number-placeholder">Enter number</div>
+              <div id="dial-error" class="error-text"></div>
+            </div>
+
+            <!-- Keypad Grid -->
+            <div class="keypad-grid">
+              <button class="keypad-btn" data-val="1">1</button>
+              <button class="keypad-btn" data-val="2">2</button>
+              <button class="keypad-btn" data-val="3">3</button>
+              <button class="keypad-btn" data-val="4">4</button>
+              <button class="keypad-btn" data-val="5">5</button>
+              <button class="keypad-btn" data-val="6">6</button>
+              <button class="keypad-btn" data-val="7">7</button>
+              <button class="keypad-btn" data-val="8">8</button>
+              <button class="keypad-btn" data-val="9">9</button>
+              <button class="keypad-btn" data-val="*">*</button>
+              <button class="keypad-btn" data-val="0">0</button>
+              <button class="keypad-btn btn-backspace" id="btn-backspace">
+                <i data-lucide="delete"></i>
+              </button>
+            </div>
+            
+            <!-- Presence Status -->
+            <div class="presence-status-center">
+              <span class="status-dot green"></span>
+              <span id="status-text">Active</span>
+            </div>
+
+            <!-- Call Actions -->
+            <div class="call-actions">
+              <button id="btn-voice-call" class="btn-call voice">
+                <i data-lucide="phone"></i> Voice
+              </button>
+              <button id="btn-video-call" class="btn-call video">
+                <i data-lucide="video"></i> Video
+              </button>
+            </div>
+          </div>
+
+          <!-- RECENTS TAB -->
+          <div id="tab-recents" class="tab-content">
+            <div id="recents-list" class="list-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- FAVORITES TAB -->
+          <div id="tab-favorites" class="tab-content">
+            <div class="favorites-header">
+              <button id="btn-add-favorite" class="btn-primary-outline">
+                <i data-lucide="plus" class="icon-sm"></i> Add Favorite
+              </button>
+            </div>
+            <div id="favorites-list" class="list-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- SHARE TAB -->
+          <div id="tab-share" class="tab-content">
+            <div class="share-card">
+              <div class="qr-container">
+                <img id="qr-image" src="" alt="QR Code">
+              </div>
+              <h3>Scan to Call</h3>
+              <p class="share-desc">Share this QR code with others so they can call you instantly without saved contacts.</p>
+              <div class="share-num-box">
+                <span id="share-number-display">------</span>
+              </div>
+              <div class="share-actions">
+                <button id="btn-share-copy" class="btn-secondary">
+                  <i data-lucide="copy" class="icon-sm"></i> Copy Number
+                </button>
+                <button id="btn-share-link" class="btn-secondary">
+                  <i data-lucide="share" class="icon-sm"></i> Share Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+          <button class="nav-item active" data-tab="dialer">
+            <span class="nav-icon"><i data-lucide="grid"></i></span>
+            <span class="nav-label">Dialer</span>
+          </button>
+          <button class="nav-item" data-tab="recents">
+            <span class="nav-icon"><i data-lucide="history"></i></span>
+            <span class="nav-label">Recents</span>
+          </button>
+          <button class="nav-item" data-tab="favorites">
+            <span class="nav-icon"><i data-lucide="star"></i></span>
+            <span class="nav-label">Favorites</span>
+          </button>
+          <button class="nav-item" data-tab="share">
+            <span class="nav-icon"><i data-lucide="qr-code"></i></span>
+            <span class="nav-label">Share</span>
+          </button>
+        </nav>
+      </section>
+
+      <!-- Incoming Call Screen -->
+      <section id="screen-incoming" class="screen">
+        <div class="incoming-info">
+          <p id="incoming-type">Incoming Call</p>
+          <div class="incoming-avatar">
+            <i data-lucide="user" class="avatar-icon-svg"></i>
+          </div>
+          <h2 id="incoming-number">------</h2>
+          <p id="incoming-subtext">is calling you</p>
+        </div>
+        <div class="incoming-actions">
+          <button id="btn-decline" class="btn-action red">
+            <i data-lucide="phone-off"></i>
+          </button>
+          <button id="btn-accept" class="btn-action green">
+            <i data-lucide="phone"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- Active Call Screen (Voice & Video combined dynamically) -->
+      <section id="screen-active-call" class="screen">
+        <!-- Remote Video View -->
+        <video id="remote-video" autoplay playsinline class="video-view remote"></video>
+        
+        <!-- Local Video View (PiP) -->
+        <video id="local-video" autoplay playsinline muted class="video-view local"></video>
+
+        <!-- Voice Call UI Overlay -->
+        <div class="call-overlay">
+          <p id="call-status">Connecting...</p>
+          <div class="call-avatar" id="active-call-avatar">
+            <i data-lucide="user" class="avatar-icon-svg"></i>
+          </div>
+          <h2 id="call-partner-number">------</h2>
+          <span id="call-timer">00:00</span>
+        </div>
+
+        <!-- In-Call Control Overlay -->
+        <div class="control-overlay">
+          <div class="control-buttons">
+            <button id="btn-mute" class="btn-control">
+              <i data-lucide="mic-off" class="icon-sm inline-icon"></i> Mute
+            </button>
+            <button id="btn-camera" class="btn-control hidden">
+              <i data-lucide="video-off" class="icon-sm inline-icon"></i> Cam Off
+            </button>
+            <button id="btn-speaker" class="btn-control active">
+              <i data-lucide="volume-2" class="icon-sm inline-icon"></i> Speaker
+            </button>
+          </div>
+          <button id="btn-hangup" class="btn-hangup">
+            <i data-lucide="phone-off"></i>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Add Favorite Modal Dialog -->
+  <div id="favorite-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add Favorite</h3>
+      <p>Enter the 6-digit number to add to your favorites list.</p>
+      <input type="text" id="favorite-input" placeholder="000000" maxlength="6">
+      <div id="favorite-error" class="error-text"></div>
+      <div class="modal-actions">
+        <button id="btn-modal-cancel" class="btn-flat">Cancel</button>
+        <button id="btn-modal-add" class="btn-primary">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Client JavaScript -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
