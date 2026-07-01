@@ -32,7 +32,6 @@ class SocketService {
           .setTransports(['websocket'])
           .disableAutoConnect()
           .enableReconnection()
-          .setReconnectionAttempts(double.infinity.toInt())
           .setReconnectionDelay(1000)
           .setReconnectionDelayMax(5000)
           .build(),
@@ -45,6 +44,14 @@ class SocketService {
 
       // Register with server
       _socket!.emit('register', {'number': _userNumber});
+    });
+
+    _socket!.onConnectError((data) {
+      debugPrint('🔌 Socket connection error: $data');
+    });
+
+    _socket!.onConnectTimeout((data) {
+      debugPrint('🔌 Socket connection timeout: $data');
     });
 
     _socket!.onDisconnect((_) {
