@@ -5,10 +5,10 @@ class AppConstants {
   /// Backend server URL.
   /// For Android emulator: use 10.0.2.2 to reach host machine.
   /// For physical device: use your machine's local IP.
-  static const String serverUrl = 'http://10.0.2.2:3001';
+  static const String serverUrl = 'https://beam-server-vb9q.onrender.com';
 
   /// WebSocket server URL.
-  static const String wsUrl = 'http://10.0.2.2:3001';
+  static const String wsUrl = 'https://beam-server-vb9q.onrender.com';
 
   /// STUN servers for WebRTC ICE.
   static const Map<String, dynamic> iceServers = {
