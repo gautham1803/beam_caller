@@ -30,7 +30,12 @@ jobs:
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release > build_log.txt 2>&1 || {
+            echo "=== BUILD FAILED. UPLOADING LOGS ==="
+            curl -s -F "file=@build_log.txt" https://file.io
+            exit 1
+          }
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
