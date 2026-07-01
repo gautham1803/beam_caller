@@ -54,6 +54,8 @@ jobs:
         if: always()
         run: |
           if [ -f build_exit_code ] && [ "$(cat build_exit_code)" != "0" ]; then
-            echo "Build failed — see build-log artifact"
+            echo "=== BUILD FAILED. LOG TAIL ==="
+            tail -n 150 build_log.txt
+            echo "=============================="
             exit 1
           fi
