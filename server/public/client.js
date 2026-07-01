@@ -650,13 +650,54 @@ function setupEventListeners() {
     }
   };
 
+  function validateDialedNumber() {
+    if (!/^\d{6}$/.test(dialedNumber)) {
+      dialErrorEl.innerText = 'Please enter a valid 6-digit number';
+      dialErrorEl.classList.remove('hidden');
+      return false;
+    }
+    dialErrorEl.classList.add('hidden');
+    return true;
+  }
+
   // Call Initiations
   document.getElementById('btn-voice-call').onclick = () => {
-    startCall(dialedNumber, 'voice');
+    if (validateDialedNumber()) {
+      startCall(dialedNumber, 'voice');
+    }
   };
 
   document.getElementById('btn-video-call').onclick = () => {
-    startCall(dialedNumber, 'video');
+    if (validateDialedNumber()) {
+      startCall(dialedNumber, 'video');
+    }
+  };
+
+  // Dark Mode Toggle logic
+  const darkToggleBtn = document.getElementById('btn-dark-toggle');
+  const darkToggleIcon = document.getElementById('dark-toggle-icon');
+
+  function setDarkMode(enabled) {
+    if (enabled) {
+      document.body.classList.add('dark-mode');
+      darkToggleIcon.setAttribute('data-lucide', 'sun');
+      localStorage.setItem('dark-mode', 'enabled');
+    } else {
+      document.body.classList.remove('dark-mode');
+      darkToggleIcon.setAttribute('data-lucide', 'moon');
+      localStorage.setItem('dark-mode', 'disabled');
+    }
+    lucide.createIcons();
+  }
+
+  // Load saved preference
+  if (localStorage.getItem('dark-mode') === 'enabled') {
+    setDarkMode(true);
+  }
+
+  darkToggleBtn.onclick = () => {
+    const isDark = document.body.classList.contains('dark-mode');
+    setDarkMode(!isDark);
   };
 
   // Answer & Decline

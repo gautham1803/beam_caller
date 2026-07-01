@@ -194,6 +194,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     });
 
+    final themeMode = ref.watch(themeModeProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -204,12 +206,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceBlue,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.phone_in_talk_rounded,
-                  color: AppTheme.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 18,
                 ),
               ),
@@ -218,6 +220,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(_getAppBarTitle()),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeMode == ThemeMode.dark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
+            onPressed: () {
+              ref.read(themeModeProvider.notifier).state =
+                  themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: _buildBody(userState, isSocketConnected),
@@ -241,7 +257,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ref.read(recentsProvider.notifier).fetchRecents();
                   }
                 },
-                backgroundColor: Colors.white,
                 indicatorColor: AppTheme.lightBlue,
                 destinations: const [
                   NavigationDestination(

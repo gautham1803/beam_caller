@@ -28,8 +28,22 @@ class _DialPadState extends State<DialPad> {
   void _validateAndCall(bool isVideo) {
     final number = _controller.text.trim();
 
-    if (number.length != 6) {
+    if (number.isEmpty || number.length != 6) {
       setState(() => _error = 'Enter a 6-digit number');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_outline_rounded, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Please enter a valid 6-digit number to call'),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
       return;
     }
 
@@ -40,6 +54,20 @@ class _DialPadState extends State<DialPad> {
 
     if (number == widget.myNumber) {
       setState(() => _error = 'Cannot call yourself');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_outline_rounded, color: Colors.white),
+              SizedBox(width: 8),
+              Text('You cannot call your own number'),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
       return;
     }
 
@@ -60,12 +88,15 @@ class _DialPadState extends State<DialPad> {
 
   @override
   Widget build(BuildContext context) {
+    final cardBgColor = Theme.of(context).cardTheme.color ?? Colors.white;
+    final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? AppTheme.textPrimary;
+
     return Column(
       children: [
         // Input field
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBgColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -84,25 +115,25 @@ class _DialPadState extends State<DialPad> {
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w600,
               letterSpacing: 8,
-              color: AppTheme.textPrimary,
+              color: textColor,
             ),
             decoration: InputDecoration(
               hintText: '000000',
               counterText: '',
               filled: true,
-              fillColor: Colors.white,
+              fillColor: cardBgColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(
-                  color: AppTheme.primaryBlue,
+                borderSide: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
                   width: 2,
                 ),
               ),
@@ -131,7 +162,7 @@ class _DialPadState extends State<DialPad> {
                 icon: Icons.call_rounded,
                 label: 'Voice Call',
                 color: AppTheme.activeGreen,
-                onPressed: _isValid ? () => _validateAndCall(false) : null,
+                onPressed: () => _validateAndCall(false),
               ),
             ),
             const SizedBox(width: 16),
@@ -141,7 +172,7 @@ class _DialPadState extends State<DialPad> {
                 icon: Icons.videocam_rounded,
                 label: 'Video Call',
                 color: AppTheme.primaryBlue,
-                onPressed: _isValid ? () => _validateAndCall(true) : null,
+                onPressed: () => _validateAndCall(true),
               ),
             ),
           ],

@@ -27,6 +27,31 @@
   --border-radius-sm: 10px;
 }
 
+body.dark-mode {
+  --primary-blue: #F8FAFC; 
+  --accent-blue: #3B82F6;  
+  --light-blue: #1E293B;
+  --surface-blue: #1E293B; 
+  
+  --active-green: #34D399;
+  --light-green: #064E3B;
+  
+  --end-call-red: #F87171;
+  --light-red: #7F1D1D;
+  
+  --offline-gray: #94A3B8;
+  --light-gray: #1E293B;
+  --medium-gray: #334155;
+  --dark-gray: #E2E8F0;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  
+  --background: #0F172A;
+  --surface: #1E293B;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
 /* Global Reset */
 * {
   box-sizing: border-box;
@@ -200,7 +225,35 @@ svg.lucide.icon-sm {
   padding: 20px 24px 10px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon-only {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.btn-icon-only:hover {
+  background-color: var(--light-gray);
+  color: var(--text-primary);
+}
+
+.btn-icon-only:active {
+  transform: scale(0.92);
 }
 
 .logo-small {
@@ -269,6 +322,15 @@ svg.lucide.icon-sm {
   color: var(--offline-gray) !important;
   letter-spacing: 0.5px !important;
   font-family: 'Inter', sans-serif !important;
+}
+
+.error-text {
+  color: var(--end-call-red);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 6px;
+  min-height: 18px;
+  text-align: center;
 }
 
 /* Keypad Grid styling */

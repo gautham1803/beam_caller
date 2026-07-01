@@ -112,3 +112,5 @@ final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
     ref.read(apiServiceProvider),
   );
 });
+
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);

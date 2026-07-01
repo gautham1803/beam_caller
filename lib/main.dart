@@ -24,15 +24,19 @@ void main() {
   runApp(const ProviderScope(child: CallerApp()));
 }
 
-class CallerApp extends StatelessWidget {
+class CallerApp extends ConsumerWidget {
   const CallerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'Beam',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
       home: const SplashScreen(),
     );
   }
