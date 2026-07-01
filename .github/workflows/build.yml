@@ -29,16 +29,31 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build APK (capture logs)
+        id: build_apk
         run: |
-          flutter build apk --release > build_log.txt 2>&1 || {
-            echo "=== BUILD FAILED. UPLOADING LOGS ==="
-            curl -s -F "file=@build_log.txt" https://file.io
-            exit 1
-          }
+          flutter build apk --release 2>&1 | tee build_log.txt
+          echo "${PIPESTATUS[0]}" > build_exit_code
+        continue-on-error: true
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build_log.txt
 
       - name: Upload APK artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: beam-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Fail job if build failed
+        if: always()
+        run: |
+          if [ -f build_exit_code ] && [ "$(cat build_exit_code)" != "0" ]; then
+            echo "Build failed — see build-log artifact"
+            exit 1
+          fi
