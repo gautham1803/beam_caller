@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'presentation/providers/user_provider.dart';
 import 'utils/theme.dart';
 import 'presentation/screens/splash_screen.dart';
 
