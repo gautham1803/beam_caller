@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../providers/socket_provider.dart';
 import '../providers/call_provider.dart';
 import '../providers/recents_provider.dart';
+import '../providers/settings_provider.dart';
 import '../../services/push_notification_service.dart';
 import '../widgets/number_card.dart';
 import '../widgets/status_indicator.dart';
@@ -16,6 +17,7 @@ import '../widgets/share_view.dart';
 import 'incoming_call_screen.dart';
 import 'voice_call_screen.dart';
 import 'video_call_screen.dart';
+import 'settings_screen.dart';
 
 /// Main home screen with bottom navigation (Dialer, Recents, Favorites, Share).
 class HomeScreen extends ConsumerStatefulWidget {
@@ -212,7 +214,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     });
 
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(persistedThemeModeProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -262,15 +264,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
-              icon: Icon(
-                themeMode == ThemeMode.dark
-                    ? Icons.light_mode_rounded
-                    : Icons.dark_mode_rounded,
+              icon: const Icon(
+                Icons.settings_rounded,
                 size: 20,
               ),
               onPressed: () {
-                ref.read(themeModeProvider.notifier).state =
-                    themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                );
               },
             ),
           ),

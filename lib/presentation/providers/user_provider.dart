@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/local/secure_storage_service.dart';
 import '../../data/remote/api_service.dart';
 import '../../domain/models/user_model.dart';
@@ -101,6 +102,15 @@ class UserNotifier extends StateNotifier<UserState> {
 
   /// Get the user's assigned number.
   String? get number => state.user?.number;
+
+  /// Clear all stored credentials and reset.
+  Future<void> resetApp() async {
+    await _storage.saveAssignedNumber('');
+    await _storage.saveDeviceId('');
+    const fStorage = FlutterSecureStorage();
+    await fStorage.deleteAll();
+    state = const UserState();
+  }
 }
 
 // Providers

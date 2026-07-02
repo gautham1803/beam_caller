@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/user_provider.dart';
 import 'utils/theme.dart';
 import 'presentation/screens/splash_screen.dart';
@@ -30,7 +31,7 @@ class CallerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(persistedThemeModeProvider);
 
     return MaterialApp(
       title: 'Beam',

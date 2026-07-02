@@ -10,12 +10,14 @@ import '../../data/remote/socket_service.dart';
 import '../../services/webrtc_service.dart';
 import '../../services/permission_service.dart';
 import 'socket_provider.dart';
+import 'settings_provider.dart';
 
 /// Manages the entire call lifecycle.
 class CallNotifier extends StateNotifier<CallModel> {
   final SocketService _socketService;
   final WebRTCService _webrtcService;
   final PermissionService _permissionService;
+  final Ref _ref;
   Timer? _durationTimer;
   DateTime? _callStartTime;
   bool _isRemoteDescriptionSet = false;
@@ -25,6 +27,7 @@ class CallNotifier extends StateNotifier<CallModel> {
     this._socketService,
     this._webrtcService,
     this._permissionService,
+    this._ref,
   ) : super(CallModel.idle) {
     _setupSocketListeners();
   }
@@ -44,8 +47,11 @@ class CallNotifier extends StateNotifier<CallModel> {
           callerNumber: callerNumber,
           remoteNumber: callerNumber,
         );
-        // Play ringtone on incoming call
-        FlutterRingtonePlayer().playRingtone(looping: true, asAlarm: false);
+        // Play ringtone on incoming call if enabled in settings
+        final alertsEnabled = _ref.read(settingsProvider).notificationsEnabled;
+        if (alertsEnabled) {
+          FlutterRingtonePlayer().playRingtone(looping: true, asAlarm: false);
+        }
       } else if (state.isActive) {
         // Already in a call, auto-reject
         _socketService.rejectCall(callerNumber ?? '');
@@ -402,5 +408,5 @@ final callProvider = StateNotifierProvider<CallNotifier, CallModel>((ref) {
   final socketService = ref.read(socketServiceProvider);
   final webrtcService = ref.read(webrtcServiceProvider);
   final permissionService = ref.read(permissionServiceProvider);
-  return CallNotifier(socketService, webrtcService, permissionService);
+  return CallNotifier(socketService, webrtcService, permissionService, ref);
 });

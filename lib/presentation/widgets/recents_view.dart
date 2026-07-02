@@ -63,6 +63,35 @@ class _RecentsViewState extends ConsumerState<RecentsView> {
     final favorites = ref.watch(favoritesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    if (recentsState.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              color: AppTheme.endCallRed,
+              size: 44,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              recentsState.error!,
+              style: const TextStyle(
+                color: AppTheme.endCallRed,
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref.read(recentsProvider.notifier).fetchRecents(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (recentsState.isLoading && recentsState.calls.isEmpty) {
       return Center(
         child: Column(
