@@ -10,11 +10,26 @@ class AppConstants {
   /// WebSocket server URL.
   static const String wsUrl = 'https://beam-server-vb9q.onrender.com';
 
-  /// STUN servers for WebRTC ICE.
+  /// STUN/TURN servers for WebRTC ICE.
   static const Map<String, dynamic> iceServers = {
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
+      {
+        'urls': 'turn:openrelay.metered.ca:80',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject',
+      },
+      {
+        'urls': 'turn:openrelay.metered.ca:443',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject',
+      },
+      {
+        'urls': 'turns:openrelay.metered.ca:443',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject',
+      },
     ],
   };
 
