@@ -17,6 +17,8 @@ class CallNotifier extends StateNotifier<CallModel> {
   final PermissionService _permissionService;
   Timer? _durationTimer;
   DateTime? _callStartTime;
+  bool _isRemoteDescriptionSet = false;
+  final List<RTCIceCandidate> _bufferedCandidates = [];
 
   CallNotifier(
     this._socketService,
@@ -106,6 +108,8 @@ class CallNotifier extends StateNotifier<CallModel> {
           sdpMap['type'] as String?,
         );
         await _webrtcService.setRemoteDescription(sdp);
+        _isRemoteDescriptionSet = true;
+        _processBufferedCandidates();
 
         // Create and send answer
         final answer = await _webrtcService.createAnswer();
@@ -127,6 +131,8 @@ class CallNotifier extends StateNotifier<CallModel> {
           sdpMap['type'] as String?,
         );
         await _webrtcService.setRemoteDescription(sdp);
+        _isRemoteDescriptionSet = true;
+        _processBufferedCandidates();
       } catch (e) {
         debugPrint('SDP answer handling error: $e');
       }
@@ -141,7 +147,11 @@ class CallNotifier extends StateNotifier<CallModel> {
           candidateMap['sdpMid'] as String?,
           candidateMap['sdpMLineIndex'] as int?,
         );
-        await _webrtcService.addIceCandidate(candidate);
+        if (_isRemoteDescriptionSet) {
+          await _webrtcService.addIceCandidate(candidate);
+        } else {
+          _bufferedCandidates.add(candidate);
+        }
       } catch (e) {
         debugPrint('ICE candidate handling error: $e');
       }
@@ -333,10 +343,22 @@ class CallNotifier extends StateNotifier<CallModel> {
     });
   }
 
+  void _processBufferedCandidates() {
+    if (!_isRemoteDescriptionSet) return;
+    for (final candidate in _bufferedCandidates) {
+      _webrtcService.addIceCandidate(candidate).catchError((e) {
+        debugPrint('Error adding buffered ICE candidate: $e');
+      });
+    }
+    _bufferedCandidates.clear();
+  }
+
   void _cleanupCall() {
     _durationTimer?.cancel();
     _durationTimer = null;
     _callStartTime = null;
+    _isRemoteDescriptionSet = false;
+    _bufferedCandidates.clear();
 
     Future.delayed(const Duration(seconds: 2), () {
       if (!state.isActive) {

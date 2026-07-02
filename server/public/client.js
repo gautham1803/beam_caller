@@ -13,6 +13,8 @@ let callTimerInterval = null;
 let activeCallPartner = null;
 let currentCallType = 'voice';
 let activeCallId = null;
+let remoteDescriptionSet = false;
+let bufferedCandidates = [];
 
 // WebRTC STUN servers config
 const rtcConfig = {
@@ -166,6 +168,9 @@ function initSocket() {
   socket.on('call:sdp-offer', async (data) => {
     try {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      remoteDescriptionSet = true;
+      processBufferedCandidates();
+      
       const answer = await peerConnection.createAnswer();
       await peerConnection.setLocalDescription(answer);
       socket.emit('call:sdp-answer', { sdp: answer });
@@ -177,6 +182,8 @@ function initSocket() {
   socket.on('call:sdp-answer', async (data) => {
     try {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+      remoteDescriptionSet = true;
+      processBufferedCandidates();
     } catch (e) {
       console.error(e);
     }
@@ -185,12 +192,24 @@ function initSocket() {
   socket.on('call:ice-candidate', async (data) => {
     try {
       if (data.candidate) {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        const candidate = new RTCIceCandidate(data.candidate);
+        if (remoteDescriptionSet) {
+          await peerConnection.addIceCandidate(candidate);
+        } else {
+          bufferedCandidates.push(candidate);
+        }
       }
     } catch (e) {
       console.error(e);
     }
   });
+}
+
+function processBufferedCandidates() {
+  while (bufferedCandidates.length > 0) {
+    const candidate = bufferedCandidates.shift();
+    peerConnection.addIceCandidate(candidate).catch(e => console.error(e));
+  }
 }
 
 // 4. WebRTC Connection Setup
@@ -309,12 +328,13 @@ async function startCall(targetNumber, type) {
   });
 }
 
-function acceptCall() {
-  socket.emit('call:accept', { callerNumber: activeCallPartner });
-  
+async function acceptCall() {
   document.getElementById('call-partner-number').innerText = formatNumber(activeCallPartner);
   updateCallStatus('Connecting...');
   showScreen('screen-active-call');
+
+  await startWebRTC(false);
+  socket.emit('call:accept', { callerNumber: activeCallPartner });
 }
 
 function declineCall() {
@@ -352,6 +372,8 @@ async function endCallCleanup() {
   }
 
   activeCallId = null;
+  remoteDescriptionSet = false;
+  bufferedCandidates = [];
 
   // Stop media tracks
   if (localStream) {

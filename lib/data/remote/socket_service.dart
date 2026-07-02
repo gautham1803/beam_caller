@@ -50,10 +50,6 @@ class SocketService {
       debugPrint('🔌 Socket connection error: $data');
     });
 
-    _socket!.onConnectTimeout((data) {
-      debugPrint('🔌 Socket connection timeout: $data');
-    });
-
     _socket!.onDisconnect((_) {
       debugPrint('🔌 Socket disconnected');
       _isConnected = false;
