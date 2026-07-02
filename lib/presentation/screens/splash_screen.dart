@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/theme.dart';
+import '../../services/permission_service.dart';
 import '../providers/user_provider.dart';
 import 'home_screen.dart';
 
@@ -55,6 +56,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _initialize() async {
     try {
+      // Request notification permissions
+      await PermissionService().requestNotification();
+      
       final success = await ref.read(userProvider.notifier).initialize();
 
       if (success && mounted) {
