@@ -102,6 +102,17 @@ function setupSocketHandler(io) {
           } catch (pushErr) {
             console.error('Failed to send push notification:', pushErr);
           }
+
+          // Record as an immediate missed call for the offline user
+          try {
+            await pool.query(
+              'INSERT INTO call_history (caller, receiver, type, ended_at, duration) VALUES ($1, $2, $3, NOW(), 0)',
+              [callerNumber, targetNumber, callType]
+            );
+          } catch (dbErr) {
+            console.error('DB offline missed call log error:', dbErr);
+          }
+
           socket.emit('call:error', { message: 'User offline' });
           return;
         }
