@@ -90,15 +90,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             isOnline: isSocketConnected,
             lastSeenText: isSocketConnected ? null : 'Connecting...',
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
           Align(
             alignment: Alignment.centerLeft,
-            child: Text(
-              'Make a Call',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontWeight: FontWeight.w600,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  child: Icon(
+                    Icons.dialpad_rounded,
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.7),
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Make a Call',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -170,6 +187,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userState = ref.watch(userProvider);
     final isSocketConnected = ref.watch(socketProvider);
     final callState = ref.watch(callProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // React to call state changes
     ref.listen(callProvider, (previous, next) {
@@ -204,35 +222,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             if (_currentIndex == 0) ...[
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryBlue.withValues(alpha: 0.15),
+                      AppTheme.primaryBlue.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.phone_in_talk_rounded,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: AppTheme.primaryBlue,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 10),
             ],
-            Text(_getAppBarTitle()),
+            Text(
+              _getAppBarTitle(),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: isDark ? Colors.white : AppTheme.textPrimary,
+              ),
+            ),
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              themeMode == ThemeMode.dark
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: () {
-              ref.read(themeModeProvider.notifier).state =
-                  themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-            },
+            child: IconButton(
+              icon: Icon(
+                themeMode == ThemeMode.dark
+                    ? Icons.light_mode_rounded
+                    : Icons.dark_mode_rounded,
+                size: 20,
+              ),
+              onPressed: () {
+                ref.read(themeModeProvider.notifier).state =
+                    themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+              },
+            ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -243,8 +284,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.3)
+                        : Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 16,
                     offset: const Offset(0, -4),
                   ),
                 ],
@@ -257,26 +300,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ref.read(recentsProvider.notifier).fetchRecents();
                   }
                 },
-                indicatorColor: AppTheme.lightBlue,
-                destinations: const [
+                indicatorColor: isDark
+                    ? AppTheme.primaryBlue.withValues(alpha: 0.2)
+                    : AppTheme.lightBlue,
+                backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                height: 68,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: [
                   NavigationDestination(
-                    icon: Icon(Icons.dialpad_rounded),
-                    selectedIcon: Icon(Icons.dialpad_rounded, color: AppTheme.primaryBlue),
+                    icon: Icon(
+                      Icons.dialpad_rounded,
+                      color: isDark ? Colors.white38 : AppTheme.offlineGray,
+                    ),
+                    selectedIcon: const Icon(Icons.dialpad_rounded, color: AppTheme.primaryBlue),
                     label: 'Dialer',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.history_rounded),
-                    selectedIcon: Icon(Icons.history_rounded, color: AppTheme.primaryBlue),
+                    icon: Icon(
+                      Icons.history_rounded,
+                      color: isDark ? Colors.white38 : AppTheme.offlineGray,
+                    ),
+                    selectedIcon: const Icon(Icons.history_rounded, color: AppTheme.primaryBlue),
                     label: 'Recents',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.star_border_rounded),
-                    selectedIcon: Icon(Icons.star_rounded, color: AppTheme.primaryBlue),
+                    icon: Icon(
+                      Icons.star_border_rounded,
+                      color: isDark ? Colors.white38 : AppTheme.offlineGray,
+                    ),
+                    selectedIcon: const Icon(Icons.star_rounded, color: Colors.amber),
                     label: 'Favorites',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.qr_code_rounded),
-                    selectedIcon: Icon(Icons.qr_code_scanner_rounded, color: AppTheme.primaryBlue),
+                    icon: Icon(
+                      Icons.qr_code_rounded,
+                      color: isDark ? Colors.white38 : AppTheme.offlineGray,
+                    ),
+                    selectedIcon: const Icon(Icons.qr_code_scanner_rounded, color: AppTheme.primaryBlue),
                     label: 'Share',
                   ),
                 ],
