@@ -39,6 +39,71 @@ const rtcConfig = {
   ]
 };
 
+// Web Audio API Ringtone & Dial Tone Generator
+let audioCtx = null;
+let ringtoneInterval = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+
+function playTone(freq1, freq2, duration) {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    osc1.frequency.value = freq1;
+    osc2.frequency.value = freq2;
+    
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.05);
+    gainNode.gain.setValueAtTime(0.12, ctx.currentTime + duration - 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+    
+    osc1.start();
+    osc2.start();
+    
+    osc1.stop(ctx.currentTime + duration);
+    osc2.stop(ctx.currentTime + duration);
+  } catch (e) {
+    console.error('Tone generation failed:', e);
+  }
+}
+
+function startDialingSound() {
+  stopSounds();
+  const play = () => playTone(440, 480, 2.0); // US ringback tone: 440+480Hz, 2s on
+  play();
+  ringtoneInterval = setInterval(play, 6000); // 4s off cadence
+}
+
+function startRingtoneSound() {
+  stopSounds();
+  const play = () => playTone(440, 480, 1.2); // Ringtone: 1.2s on
+  play();
+  ringtoneInterval = setInterval(play, 2400); // 1.2s off cadence
+}
+
+function stopSounds() {
+  if (ringtoneInterval) {
+    clearInterval(ringtoneInterval);
+    ringtoneInterval = null;
+  }
+}
+
 // 1. Initialize Application
 window.addEventListener('DOMContentLoaded', async () => {
   setupApp();
@@ -142,6 +207,7 @@ function initSocket() {
     
     document.getElementById('incoming-number').innerText = formatNumber(activeCallPartner);
     document.getElementById('incoming-type').innerText = `Incoming ${currentCallType === 'video' ? 'Video' : 'Voice'} Call`;
+    startRingtoneSound();
     showScreen('screen-incoming');
   });
 
@@ -314,6 +380,7 @@ async function startCall(targetNumber, type) {
   document.getElementById('active-call-avatar').innerHTML = '<i data-lucide="user" class="avatar-icon-svg"></i>';
   lucide.createIcons();
   updateCallStatus('Calling...');
+  startDialingSound();
   showScreen('screen-active-call');
 
   // Register call start in history via REST
@@ -344,6 +411,7 @@ async function startCall(targetNumber, type) {
 }
 
 async function acceptCall() {
+  stopSounds();
   document.getElementById('call-partner-number').innerText = formatNumber(activeCallPartner);
   updateCallStatus('Connecting...');
   showScreen('screen-active-call');
@@ -368,6 +436,7 @@ function hangupCall() {
 
 // End call cleanup & navigation
 async function endCallCleanup() {
+  stopSounds();
   // Stop call timer
   stopCallTimer();
 
@@ -549,8 +618,8 @@ async function loadRecents() {
 
 function formatCallTime(dateStr) {
   const date = new Date(dateStr);
-  const hrs = date.getHours().toString().padLeft(2, '0');
-  const mins = date.getMinutes().toString().padLeft(2, '0');
+  const hrs = date.getHours().toString().padStart(2, '0');
+  const mins = date.getMinutes().toString().padStart(2, '0');
   return `${date.toLocaleDateString()} ${hrs}:${mins}`;
 }
 

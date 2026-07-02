@@ -7,6 +7,7 @@ const {
   cleanStaleConnections,
 } = require('../services/presenceService');
 const { getUserByNumber } = require('../services/numberService');
+const { pool } = require('../config/database');
 
 // Track active calls in memory: socketId -> { callPartnerSocket, callPartnerNumber, callType }
 const activeCalls = new Map();
@@ -124,6 +125,18 @@ function setupSocketHandler(io) {
           return;
         }
 
+        // Record call in DB
+        let dbCallId = null;
+        try {
+          const dbResult = await pool.query(
+            'INSERT INTO call_history (caller, receiver, type) VALUES ($1, $2, $3) RETURNING id',
+            [callerNumber, targetNumber, callType]
+          );
+          dbCallId = dbResult.rows[0].id;
+        } catch (dbErr) {
+          console.error('DB call start insert error:', dbErr);
+        }
+
         // Send incoming call to target
         io.to(targetConnection.socket_id).emit('call:incoming', {
           callerNumber,
@@ -136,10 +149,12 @@ function setupSocketHandler(io) {
           callPartnerNumber: targetNumber,
           callType,
           status: 'ringing',
+          dbCallId,
+          startTime: Date.now(),
         });
 
         socket.emit('call:ringing', { targetNumber });
-        console.log(`📞 Call: ${callerNumber} → ${targetNumber} (${callType})`);
+        console.log(`📞 Call: ${callerNumber} → ${targetNumber} (${callType}) [DB: ${dbCallId}]`);
       } catch (err) {
         console.error('Call start error:', err);
         socket.emit('call:error', { message: 'Call failed' });
@@ -163,8 +178,10 @@ function setupSocketHandler(io) {
 
         // Update call tracking
         const callerCall = activeCalls.get(callerConnection.socket_id);
+        const connectTime = Date.now();
         if (callerCall) {
           callerCall.status = 'connected';
+          callerCall.connectTime = connectTime;
         }
 
         activeCalls.set(socket.id, {
@@ -172,6 +189,8 @@ function setupSocketHandler(io) {
           callPartnerNumber: callerNumber,
           callType: callerCall?.callType || 'voice',
           status: 'connected',
+          dbCallId: callerCall?.dbCallId || null,
+          connectTime,
         });
 
         io.to(callerConnection.socket_id).emit('call:accepted', {
@@ -197,6 +216,17 @@ function setupSocketHandler(io) {
           io.to(callerConnection.socket_id).emit('call:rejected', {
             receiverNumber: socketUserMap.get(socket.id),
           });
+          const callerCall = activeCalls.get(callerConnection.socket_id);
+          if (callerCall && callerCall.dbCallId) {
+            try {
+              await pool.query(
+                'UPDATE call_history SET ended_at = NOW(), duration = 0 WHERE id = $1',
+                [callerCall.dbCallId]
+              );
+            } catch (dbErr) {
+              console.error('DB update call reject error:', dbErr);
+            }
+          }
           activeCalls.delete(callerConnection.socket_id);
         }
 
@@ -217,6 +247,16 @@ function setupSocketHandler(io) {
           io.to(callData.callPartnerSocket).emit('call:cancelled', {
             callerNumber: socketUserMap.get(socket.id),
           });
+          if (callData.dbCallId) {
+            try {
+              await pool.query(
+                'UPDATE call_history SET ended_at = NOW(), duration = 0 WHERE id = $1',
+                [callData.dbCallId]
+              );
+            } catch (dbErr) {
+              console.error('DB update call cancel error:', dbErr);
+            }
+          }
           activeCalls.delete(callData.callPartnerSocket);
           activeCalls.delete(socket.id);
           console.log(`🚫 Call cancelled by ${socketUserMap.get(socket.id)}`);
@@ -236,6 +276,21 @@ function setupSocketHandler(io) {
           io.to(callData.callPartnerSocket).emit('call:ended', {
             number: socketUserMap.get(socket.id),
           });
+          
+          if (callData.dbCallId) {
+            const duration = callData.connectTime
+              ? Math.round((Date.now() - callData.connectTime) / 1000)
+              : 0;
+            try {
+              await pool.query(
+                'UPDATE call_history SET ended_at = NOW(), duration = $1 WHERE id = $2',
+                [duration, callData.dbCallId]
+              );
+            } catch (dbErr) {
+              console.error('DB update call end error:', dbErr);
+            }
+          }
+
           activeCalls.delete(callData.callPartnerSocket);
           activeCalls.delete(socket.id);
           console.log(`📴 Call ended by ${socketUserMap.get(socket.id)}`);
@@ -309,6 +364,21 @@ function setupSocketHandler(io) {
             number: userNumber,
             reason: 'disconnect',
           });
+          
+          if (callData.dbCallId) {
+            const duration = callData.connectTime
+              ? Math.round((Date.now() - callData.connectTime) / 1000)
+              : 0;
+            try {
+              await pool.query(
+                'UPDATE call_history SET ended_at = NOW(), duration = $1 WHERE id = $2',
+                [duration, callData.dbCallId]
+              );
+            } catch (dbErr) {
+              console.error('DB update call end on disconnect error:', dbErr);
+            }
+          }
+
           activeCalls.delete(callData.callPartnerSocket);
           activeCalls.delete(socket.id);
         }

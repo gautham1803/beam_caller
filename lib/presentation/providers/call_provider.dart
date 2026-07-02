@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../../domain/models/call_model.dart';
 import '../../domain/models/call_state.dart';
 import '../../data/remote/socket_service.dart';
@@ -43,6 +44,8 @@ class CallNotifier extends StateNotifier<CallModel> {
           callerNumber: callerNumber,
           remoteNumber: callerNumber,
         );
+        // Play ringtone on incoming call
+        FlutterRingtonePlayer().playRingtone(looping: true, asAlarm: false);
       } else if (state.isActive) {
         // Already in a call, auto-reject
         _socketService.rejectCall(callerNumber ?? '');
@@ -57,6 +60,8 @@ class CallNotifier extends StateNotifier<CallModel> {
     // Call accepted
     _socketService.on('call:accepted', (data) async {
       state = state.copyWith(status: CallStatus.connecting);
+      // Stop dialing ringback sound
+      FlutterRingtonePlayer().stop();
       await _startWebRTC(isCaller: true);
     });
 
@@ -202,6 +207,13 @@ class CallNotifier extends StateNotifier<CallModel> {
       remoteNumber: targetNumber,
     );
 
+    // Play ringback dialing tone on outgoing call
+    FlutterRingtonePlayer().play(
+      android: AndroidSounds.ringtone,
+      ios: IosSounds.glass,
+      looping: true,
+    );
+
     _socketService.startCall(
       targetNumber,
       myNumber,
@@ -212,6 +224,9 @@ class CallNotifier extends StateNotifier<CallModel> {
   /// Accept an incoming call.
   Future<void> acceptCall() async {
     if (state.status != CallStatus.ringing) return;
+
+    // Stop incoming ringtone immediately
+    FlutterRingtonePlayer().stop();
 
     // Request permissions
     final hasPerms = await _permissionService.requestCallPermissions(
@@ -234,6 +249,7 @@ class CallNotifier extends StateNotifier<CallModel> {
   void rejectCall() {
     if (state.status != CallStatus.ringing) return;
 
+    FlutterRingtonePlayer().stop();
     _socketService.rejectCall(state.callerNumber!);
     state = state.copyWith(status: CallStatus.declined);
     _cleanupCall();
@@ -243,6 +259,7 @@ class CallNotifier extends StateNotifier<CallModel> {
   void cancelCall() {
     if (state.status != CallStatus.dialing) return;
 
+    FlutterRingtonePlayer().stop();
     _socketService.cancelCall();
     state = state.copyWith(status: CallStatus.cancelled);
     _cleanupCall();
@@ -250,6 +267,7 @@ class CallNotifier extends StateNotifier<CallModel> {
 
   /// End active call.
   void endCall() {
+    FlutterRingtonePlayer().stop();
     _socketService.endCall();
     state = state.copyWith(status: CallStatus.ended);
     _cleanupCall();
@@ -354,6 +372,7 @@ class CallNotifier extends StateNotifier<CallModel> {
   }
 
   void _cleanupCall() {
+    FlutterRingtonePlayer().stop();
     _durationTimer?.cancel();
     _durationTimer = null;
     _callStartTime = null;
