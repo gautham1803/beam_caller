@@ -41,7 +41,6 @@ class ForegroundServiceHelper {
         channelDescription: 'Keeps Beam active to receive incoming calls',
         channelImportance: NotificationChannelImportance.LOW,
         priority: NotificationPriority.LOW,
-        isSticky: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: false,
