@@ -23,7 +23,7 @@ class BeamTaskHandler extends TaskHandler {
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp) async {
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
     // Cleanup if needed
   }
 }
@@ -41,7 +41,6 @@ class ForegroundServiceHelper {
         channelDescription: 'Keeps Beam active to receive incoming calls',
         channelImportance: NotificationChannelImportance.LOW,
         priority: NotificationPriority.LOW,
-        iconData: null, // Uses app icon by default
         isSticky: true,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
