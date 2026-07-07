@@ -380,7 +380,6 @@ async function startCall(targetNumber, type) {
   document.getElementById('active-call-avatar').innerHTML = '<i data-lucide="user" class="avatar-icon-svg"></i>';
   lucide.createIcons();
   updateCallStatus('Calling...');
-  startDialingSound();
   showScreen('screen-active-call');
 
   // Register call start in history via REST

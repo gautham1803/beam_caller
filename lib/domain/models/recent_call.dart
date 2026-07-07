@@ -19,16 +19,40 @@ class RecentCall {
   });
 
   factory RecentCall.fromJson(Map<String, dynamic> json) {
+    // Handle id that might come as int or num
+    final rawId = json['id'];
+    final id = rawId is int ? rawId : (rawId as num).toInt();
+
+    // Handle started_at that might be null (shouldn't happen but be safe)
+    DateTime startedAt;
+    try {
+      startedAt = json['started_at'] != null
+          ? DateTime.parse(json['started_at'].toString())
+          : DateTime.now();
+    } catch (_) {
+      startedAt = DateTime.now();
+    }
+
+    // Handle ended_at
+    DateTime? endedAt;
+    if (json['ended_at'] != null) {
+      try {
+        endedAt = DateTime.parse(json['ended_at'].toString());
+      } catch (_) {
+        endedAt = null;
+      }
+    }
+
     return RecentCall(
-      id: json['id'] as int,
-      caller: json['caller'] as String,
-      receiver: json['receiver'] as String,
-      type: json['type'] as String? ?? 'voice',
-      startedAt: DateTime.parse(json['started_at'] as String),
-      endedAt: json['ended_at'] != null
-          ? DateTime.parse(json['ended_at'] as String)
-          : null,
-      duration: json['duration'] as int? ?? 0,
+      id: id,
+      caller: json['caller']?.toString() ?? '',
+      receiver: json['receiver']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'voice',
+      startedAt: startedAt,
+      endedAt: endedAt,
+      duration: json['duration'] is int
+          ? json['duration'] as int
+          : (json['duration'] as num?)?.toInt() ?? 0,
     );
   }
 

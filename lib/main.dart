@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/user_provider.dart';
+import 'services/foreground_service.dart';
 import 'utils/theme.dart';
 import 'presentation/screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize port for communication between TaskHandler and UI.
+  FlutterForegroundTask.initCommunicationPort();
+
+  // Initialize foreground task configuration.
+  ForegroundServiceHelper.init();
 
   // Set status bar style
   SystemChrome.setSystemUIOverlayStyle(
@@ -39,7 +47,8 @@ class CallerApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const SplashScreen(),
+      home: WithForegroundTask(child: const SplashScreen()),
     );
   }
 }
+

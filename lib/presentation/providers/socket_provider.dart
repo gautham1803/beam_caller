@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/remote/socket_service.dart';
+import '../../services/foreground_service.dart';
 import 'user_provider.dart';
 
 /// Provider for Socket.IO connection management.
@@ -21,6 +22,8 @@ class SocketNotifier extends StateNotifier<bool> {
       state = connected;
       if (connected) {
         _startHeartbeat(userNumber);
+        // Start foreground service to keep socket alive in background
+        ForegroundServiceHelper.start();
       } else {
         _stopHeartbeat();
       }
@@ -46,6 +49,7 @@ class SocketNotifier extends StateNotifier<bool> {
   void disconnect() {
     _stopHeartbeat();
     _socketService.disconnect();
+    ForegroundServiceHelper.stop();
     state = false;
   }
 
@@ -62,3 +66,4 @@ final socketServiceProvider = Provider((ref) => SocketService());
 final socketProvider = StateNotifierProvider<SocketNotifier, bool>((ref) {
   return SocketNotifier(ref.read(socketServiceProvider));
 });
+

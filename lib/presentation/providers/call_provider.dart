@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../domain/models/call_model.dart';
 import '../../domain/models/call_state.dart';
 import '../../data/remote/socket_service.dart';
@@ -41,6 +42,9 @@ class CallNotifier extends StateNotifier<CallModel> {
       final callType = data['callType'] as String? ?? 'voice';
 
       if (callerNumber != null && !state.isActive) {
+        // Wake the screen for incoming call
+        WakelockPlus.enable();
+
         state = state.copyWith(
           status: CallStatus.ringing,
           type: callType == 'video' ? CallType.video : CallType.voice,
@@ -213,13 +217,6 @@ class CallNotifier extends StateNotifier<CallModel> {
       remoteNumber: targetNumber,
     );
 
-    // Play ringback dialing tone on outgoing call
-    FlutterRingtonePlayer().play(
-      android: AndroidSounds.ringtone,
-      ios: IosSounds.glass,
-      looping: true,
-    );
-
     _socketService.startCall(
       targetNumber,
       myNumber,
@@ -379,6 +376,7 @@ class CallNotifier extends StateNotifier<CallModel> {
 
   void _cleanupCall() {
     FlutterRingtonePlayer().stop();
+    WakelockPlus.disable();
     _durationTimer?.cancel();
     _durationTimer = null;
     _callStartTime = null;
